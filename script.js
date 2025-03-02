@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadCSVFromGitHub() {
         try {
             // Replace with your actual GitHub raw file URL
-            const csvUrl = 'https://github.com/Zachary-Xie/LetUsHelpYou/blob/main/demo.csv';
+            const csvUrl = 'https://raw.githubusercontent.com/Zachary-Xie/LetUsHelpYou/main/demo.csv';
             const response = await fetch(csvUrl);
             
             if (!response.ok) {
