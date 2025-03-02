@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Apply new value and animation
         setTimeout(() => {
             bar.style.width = `${value}%`;
-            valueElement.textContent = `${value}%`;
+            valueElement.textContent = `${value.toFixed(2)}%`;
         }, 50);
     }
     

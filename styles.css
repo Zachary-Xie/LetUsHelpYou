@@ -6,7 +6,7 @@
     --opinion-color: #aa46be;
     --background-color: #ffffff;
     --text-color: #333333;
-    --secondary-bg: #f5f5f5;
+    --secondary-bg: #f0f0f0;
     --bubble-bg: rgba(255, 255, 255, 0.9);
     --shadow-color: rgba(0, 0, 0, 0.1);
     --transition-time: 0.3s;
@@ -173,6 +173,7 @@ body {
     border-radius: 6px;
     overflow: hidden;
     margin-bottom: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .bar {
