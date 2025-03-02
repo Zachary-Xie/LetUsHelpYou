@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Evaluation Visualization</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 视频播放容器 -->
+    <div class="intro-video-container" id="intro-video-container">
+        <video id="intro-video" autoplay muted playsinline loop>
+            <source src="loading.mp4" type="video/mp4">
+            <source src="lending.webm" type="video/webm">
+            Your browser does not support the video tag.
+        </video>
+        <!-- 替换Skip按钮为提示文字 -->
+        <div class="start-prompt">Click anywhere to start</div>
+    </div>
+
+    <!-- 主内容区域，初始隐藏 -->
+    <div class="main-content" id="main-content" style="display: none;">
+        <div class="container">
+            <div class="search-section">
+                <div class="logo-container">
+                    <img src="letushelpyou-high-resolution-logo.png" alt="Letushelpyou Logo" class="logo-image">
+                </div>
+                <div class="slogan-container">
+                    <h2 class="slogan">Easy Solutions for Smarter Business.</h2>
+                </div>
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Enter company name...">
+                    <button id="search-button">Search</button>
+                </div>
+                <div id="search-results" class="search-results"></div>
+            </div>
+            
+            <div class="company-info" id="company-info">
+                <h2 id="company-name" class="company-name"></h2>
+                
+                <div class="metrics-container">
+                    <div class="metric-group">
+                        <div class="metric">
+                            <span class="metric-label">Positive</span>
+                            <div class="bar-container">
+                                <div class="bar positive-bar" id="positive-bar"></div>
+                            </div>
+                            <span class="metric-value" id="positive-value"></span>
+                        </div>
+                        
+                        <div class="metric">
+                            <span class="metric-label">Negative</span>
+                            <div class="bar-container">
+                                <div class="bar negative-bar" id="negative-bar"></div>
+                            </div>
+                            <span class="metric-value" id="negative-value"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-group">
+                        <div class="metric">
+                            <span class="metric-label">Factual</span>
+                            <div class="bar-container">
+                                <div class="bar factual-bar" id="factual-bar"></div>
+                            </div>
+                            <span class="metric-value" id="factual-value"></span>
+                        </div>
+                        
+                        <div class="metric">
+                            <span class="metric-label">Opinion</span>
+                            <div class="bar-container">
+                                <div class="bar opinion-bar" id="opinion-bar"></div>
+                            </div>
+                            <span class="metric-value" id="opinion-value"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="summaries-container" id="summaries-container">
+                    <!-- Bubbles will be dynamically added via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html> 
