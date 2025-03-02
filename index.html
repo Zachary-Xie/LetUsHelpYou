@@ -6,8 +6,306 @@
     <title>Company Evaluation Visualization</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* 悬停效果样式 - 修改后 */
+        .hover-float {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 10px; /* 添加圆角 */
+            background-color: transparent; /* 确保背景透明 */
+            overflow: hidden; /* 防止内容溢出 */
+        }
+        
+        .hover-float:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.07); /* 减轻阴影强度 */
+        }
+        
+        /* 新增Logo跳跃效果 */
+        .hover-jump {
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        
+        .hover-jump:hover {
+            transform: translateY(-10px) translateY(5px);
+            animation: jump 0.5s ease-in-out;
+        }
+        
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        .hover-scale {
+            transition: transform 0.3s ease;
+            border-radius: inherit; /* 继承父元素的圆角 */
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+        
+        .hover-bright {
+            transition: filter 0.3s ease, transform 0.3s ease;
+        }
+        
+        .hover-bright:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .hover-glow {
+            transition: box-shadow 0.3s ease;
+            border-radius: 30px; /* 匹配输入框圆角 */
+        }
+        
+        .hover-glow:hover {
+            box-shadow: 0 0 15px rgba(81, 203, 238, 0.5); /* 减轻发光强度 */
+        }
+        
+        /* 整体布局调整，确保搜索框可以作为参考点 */
+        .search-section {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .logo-container {
+            z-index: 2;
+            position: relative;
+        }
+        
+        /* 标语容器样式修改 */
+        .slogan-container {
+            position: relative;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        /* 搜索容器样式修改 */
+        .search-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+        
+        /* 新的围绕搜索框边缘旋转效果 */
+        .circle-rotate-text {
+            display: inline-block;
+            cursor: pointer;
+            position: relative;
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #0E4DA6;
+            transition: color 0.3s ease;
+        }
+        
+        .circle-rotate-text:hover {
+            color: #3268BD;
+        }
+        
+        .circle-rotate-text .char {
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        /* 自定义class用于动画位置定位 */
+        .char-animated {
+            position: fixed; /* 使用fixed使其脱离文档流 */
+            z-index: 5; /* 低于搜索框的z-index */
+            font-family: 'Montserrat', sans-serif;
+            text-shadow: 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+        
+        /* 气泡样式修正 */
+        #summaries-container > div {
+            border-radius: 20px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        #summaries-container > div:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.07);
+        }
+        
+        /* 双向条形图样式 */
+        .dual-bar-container {
+            width: 100%;
+            height: 30px;
+            background-color: #f5f5f5;
+            border-radius: 15px;
+            position: relative;
+            margin: 40px 0 15px;
+            overflow: hidden;
+        }
+        
+        .positive-negative-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        
+        .positive-bar-dual {
+            position: absolute;
+            left: 0;
+            height: 100%;
+            background-color: #00AE75;
+            border-radius: 15px 0 0 15px;
+            transition: width 0.5s ease;
+        }
+        
+        .negative-bar-dual {
+            position: absolute;
+            right: 0;
+            height: 100%;
+            background-color: #F6322D;
+            border-radius: 0 15px 15px 0;
+            transition: width 0.5s ease;
+        }
+        
+        .tug-of-war {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            width: 140px;
+            height: 30px;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none; /* 确保不影响鼠标事件 */
+        }
+        
+        .tug-of-war::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background-color: #333;
+            transform: translateY(-50%);
+        }
+        
+        .positive-person, .negative-person {
+            width: 30px;
+            height: 30px;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 使用纯CSS实现小人而非SVG */
+        .positive-person::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #00AE75;
+            top: 0;
+        }
+        
+        .positive-person::after {
+            content: '';
+            position: absolute;
+            width: 3px;
+            height: 15px;
+            background-color: #00AE75;
+            top: 10px;
+            border-radius: 3px;
+        }
+        
+        .negative-person::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #F6322D;
+            top: 0;
+        }
+        
+        .negative-person::after {
+            content: '';
+            position: absolute;
+            width: 3px;
+            height: 15px;
+            background-color: #F6322D;
+            top: 10px;
+            border-radius: 3px;
+        }
+        
+        /* 为 factual 和 opinion 的小人添加特定样式 */
+        .metric-group:nth-child(2) .positive-person::before,
+        .metric-group:nth-child(2) .positive-person::after {
+            background-color: #0E4DA6; /* factual 蓝色 */
+        }
+        
+        .metric-group:nth-child(2) .negative-person::before,
+        .metric-group:nth-child(2) .negative-person::after {
+            background-color: #FFB300; /* opinion 黄色 */
+        }
+        
+        .positive-person {
+            animation: tugLeft 0.8s ease-in-out infinite alternate;
+        }
+        
+        .negative-person {
+            animation: tugRight 0.8s ease-in-out infinite alternate;
+        }
+        
+        @keyframes tugLeft {
+            from { transform: translateX(0) rotate(-5deg); }
+            to { transform: translateX(-8px) rotate(-15deg); }
+        }
+        
+        @keyframes tugRight {
+            from { transform: translateX(0) rotate(5deg); }
+            to { transform: translateX(8px) rotate(15deg); }
+        }
+        
+        .bar-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .dual-values {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        /* 错误消息样式 */
+        .error-message {
+            color: #F6322D;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #FFEBEE;
+            border-radius: 5px;
+            border-left: 4px solid #F6322D;
+        }
+    </style>
 </head>
 <body>
+    <!-- 错误信息显示区域 -->
+    <div id="error-display" style="display:none;" class="error-message"></div>
+    
     <!-- 视频播放容器 -->
     <div class="intro-video-container" id="intro-video-container">
         <video id="intro-video" autoplay muted playsinline loop>
@@ -16,63 +314,70 @@
             Your browser does not support the video tag.
         </video>
         <!-- 替换Skip按钮为提示文字 -->
-        <div class="start-prompt">Click anywhere to start</div>
+        <div class="start-prompt hover-bright">Click anywhere to start</div>
     </div>
 
     <!-- 主内容区域，初始隐藏 -->
     <div class="main-content" id="main-content" style="display: none;">
         <div class="container">
             <div class="search-section">
-                <div class="logo-container">
+                <div class="logo-container hover-jump">
                     <img src="letushelpyou-high-resolution-logo.png" alt="Letushelpyou Logo" class="logo-image">
                 </div>
                 <div class="slogan-container">
-                    <h2 class="slogan">Easy Solutions for Smarter Business.</h2>
+                    <h2 class="slogan circle-rotate-text" id="slogan-text">Easy Solutions for Smarter Business.</h2>
                 </div>
-                <div class="search-container">
-                    <input type="text" id="search-input" placeholder="Enter company name...">
-                    <button id="search-button">Search</button>
+                <div class="search-container" id="search-container">
+                    <input type="text" id="search-input" placeholder="Enter company name..." class="hover-glow">
+                    <button id="search-button" class="hover-scale">Search</button>
                 </div>
                 <div id="search-results" class="search-results"></div>
             </div>
             
             <div class="company-info" id="company-info">
-                <h2 id="company-name" class="company-name"></h2>
+                <h2 id="company-name" class="company-name hover-bright"></h2>
                 
                 <div class="metrics-container">
                     <div class="metric-group">
-                        <div class="metric">
-                            <span class="metric-label">Positive</span>
-                            <div class="bar-container">
-                                <div class="bar positive-bar" id="positive-bar"></div>
+                        <div class="positive-negative-container hover-scale">
+                            <div class="bar-labels">
+                                <span class="metric-label">Positive</span>
+                                <span class="metric-label">Negative</span>
                             </div>
-                            <span class="metric-value" id="positive-value"></span>
+                            <div class="dual-bar-container">
+                                <div class="tug-of-war">
+                                    <div class="positive-person"></div>
+                                    <div class="negative-person"></div>
+                                </div>
+                                <div class="positive-bar-dual hover-bright" id="positive-bar" style="width: 50%"></div>
+                                <div class="negative-bar-dual hover-bright" id="negative-bar" style="width: 50%"></div>
+                            </div>
+                            <div class="dual-values">
+                                <span class="metric-value" id="positive-value"></span>
+                                <span class="metric-value" id="negative-value"></span>
+                            </div>
                         </div>
                         
-                        <div class="metric">
-                            <span class="metric-label">Negative</span>
-                            <div class="bar-container">
-                                <div class="bar negative-bar" id="negative-bar"></div>
-                            </div>
-                            <span class="metric-value" id="negative-value"></span>
-                        </div>
                     </div>
                     
                     <div class="metric-group">
-                        <div class="metric">
-                            <span class="metric-label">Factual</span>
-                            <div class="bar-container">
-                                <div class="bar factual-bar" id="factual-bar"></div>
+                        <div class="positive-negative-container hover-scale">
+                            <div class="bar-labels">
+                                <span class="metric-label">Factual</span>
+                                <span class="metric-label">Opinion</span>
                             </div>
-                            <span class="metric-value" id="factual-value"></span>
-                        </div>
-                        
-                        <div class="metric">
-                            <span class="metric-label">Opinion</span>
-                            <div class="bar-container">
-                                <div class="bar opinion-bar" id="opinion-bar"></div>
+                            <div class="dual-bar-container">
+                                <div class="tug-of-war">
+                                    <div class="positive-person" style="background-color: #2196F3;"></div>
+                                    <div class="negative-person" style="background-color: #FF9800;"></div>
+                                </div>
+                                <div class="positive-bar-dual hover-bright" id="factual-bar" style="width: 50%; background-color: #0E4DA6;"></div>
+                                <div class="negative-bar-dual hover-bright" id="opinion-bar" style="width: 50%; background-color: #FFB300;"></div>
                             </div>
-                            <span class="metric-value" id="opinion-value"></span>
+                            <div class="dual-values">
+                                <span class="metric-value" id="factual-value"></span>
+                                <span class="metric-value" id="opinion-value"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -85,5 +390,194 @@
     </div>
     
     <script src="script.js"></script>
+    <script>
+        // 错误处理函数
+        function displayError(message) {
+            const errorDisplay = document.getElementById('error-display');
+            if (errorDisplay) {
+                errorDisplay.textContent = '错误: ' + message;
+                errorDisplay.style.display = 'block';
+            }
+        }
+        
+        // 使用try-catch包装所有JavaScript代码
+        try {
+            document.addEventListener('DOMContentLoaded', function() {
+                // 为动态添加的摘要气泡添加样式
+                const summariesContainer = document.getElementById('summaries-container');
+                
+                // 标语文本简化处理 - 移除动画效果
+                const sloganText = document.getElementById('slogan-text');
+                if (sloganText) {
+                    // 保留原始文本，不需要分割成字符
+                    const text = sloganText.innerText;
+                    // 不进行任何动画相关处理
+                }
+                
+                // 简化摘要容器的观察逻辑
+                if (summariesContainer) {
+                    // 使用更简单的方法为新元素添加样式
+                    const applyBubbleStyles = function(node) {
+                        if (node.nodeType === 1) { // 确保是元素节点
+                            node.classList.add('summary-bubble');
+                            // 使用CSS类代替内联样式
+                            node.style.borderRadius = '20px';
+                            node.style.backgroundColor = 'white';
+                            node.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                            node.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+                            node.style.overflow = 'hidden';
+                            
+                            // 简化事件监听器
+                            node.addEventListener('mouseenter', function() {
+                                this.style.transform = 'translateY(-5px)';
+                                this.style.boxShadow = '0 8px 15px rgba(0,0,0,0.07)';
+                            });
+                            
+                            node.addEventListener('mouseleave', function() {
+                                this.style.transform = '';
+                                this.style.boxShadow = '';
+                            });
+                        }
+                    };
+                    
+                    // 简化的MutationObserver配置
+                    try {
+                        const observer = new MutationObserver(function(mutations) {
+                            mutations.forEach(function(mutation) {
+                                if (mutation.type === 'childList') {
+                                    mutation.addedNodes.forEach(applyBubbleStyles);
+                                }
+                            });
+                        });
+                        
+                        observer.observe(summariesContainer, { childList: true });
+                    } catch (error) {
+                        displayError('无法监听摘要容器变化: ' + error.message);
+                    }
+                }
+                
+                // 简化拔河动画位置更新函数
+                function updateTugOfWar() {
+                    try {
+                        const positiveBar = document.getElementById('positive-bar');
+                        const tugOfWar = document.querySelector('.tug-of-war');
+                        
+                        if (positiveBar && tugOfWar) {
+                            // 获取正面值或默认为50%
+                            const positiveWidth = parseFloat(positiveBar.style.width) || 50;
+                            
+                            // 设置拔河位置
+                            tugOfWar.style.left = `${positiveWidth}%`;
+                        }
+
+                        // 更新 factual 和 opinion 的拔河位置
+                        const factualBar = document.getElementById('factual-bar');
+                        const factualTugOfWar = document.querySelectorAll('.tug-of-war')[1]; // 第二个拔河元素
+                        
+                        if (factualBar && factualTugOfWar) {
+                            // 获取 factual 值或默认为50%
+                            const factualWidth = parseFloat(factualBar.style.width) || 50;
+                            
+                            // 设置拔河位置
+                            factualTugOfWar.style.left = `${factualWidth}%`;
+                        }
+                    } catch (error) {
+                        displayError('更新拔河位置失败: ' + error.message);
+                    }
+                }
+                
+                // 初始化拔河位置
+                setTimeout(function() {
+                    try {
+                        const positiveBar = document.getElementById('positive-bar');
+                        const negativeBar = document.getElementById('negative-bar');
+                        
+                        if (positiveBar) {
+                            if (!positiveBar.style.width) {
+                                positiveBar.style.width = '50%';
+                            }
+                            if (negativeBar && !negativeBar.style.width) {
+                                negativeBar.style.width = '50%';
+                            }
+                        }
+
+                        // 初始化 factual 和 opinion 条形图
+                        const factualBar = document.getElementById('factual-bar');
+                        const opinionBar = document.getElementById('opinion-bar');
+                        
+                        if (factualBar) {
+                            if (!factualBar.style.width) {
+                                factualBar.style.width = '50%';
+                            }
+                            if (opinionBar && !opinionBar.style.width) {
+                                opinionBar.style.width = '50%';
+                            }
+                        }
+
+                        // 更新所有拔河位置
+                        updateTugOfWar();
+                    } catch (error) {
+                        displayError('初始化拔河位置失败: ' + error.message);
+                    }
+                }, 500);
+                
+                // 简化的正面值设置函数
+                if (window.setPositiveValue) {
+                    try {
+                        const originalSetPositive = window.setPositiveValue;
+                        window.setPositiveValue = function(value) {
+                            // 调用原始函数
+                            if (typeof originalSetPositive === 'function') {
+                                originalSetPositive(value);
+                            }
+                            
+                            // 更新条形图和拔河位置
+                            const positiveBar = document.getElementById('positive-bar');
+                            const negativeBar = document.getElementById('negative-bar');
+                            if (positiveBar && negativeBar) {
+                                const positivePercent = value;
+                                const negativePercent = 100 - value;
+                                positiveBar.style.width = positivePercent + '%';
+                                negativeBar.style.width = negativePercent + '%';
+                            }
+                            
+                            updateTugOfWar();
+                        };
+                    } catch (error) {
+                        displayError('设置正面值函数重写失败: ' + error.message);
+                    }
+                }
+
+                // factual 值设置函数
+                if (window.setFactualValue) {
+                    try {
+                        const originalSetFactual = window.setFactualValue;
+                        window.setFactualValue = function(value) {
+                            // 调用原始函数
+                            if (typeof originalSetFactual === 'function') {
+                                originalSetFactual(value);
+                            }
+                            
+                            // 更新条形图和拔河位置
+                            const factualBar = document.getElementById('factual-bar');
+                            const opinionBar = document.getElementById('opinion-bar');
+                            if (factualBar && opinionBar) {
+                                const factualPercent = value;
+                                const opinionPercent = 100 - value;
+                                factualBar.style.width = factualPercent + '%';
+                                opinionBar.style.width = opinionPercent + '%';
+                            }
+                            
+                            updateTugOfWar();
+                        };
+                    } catch (error) {
+                        displayError('设置 factual 值函数重写失败: ' + error.message);
+                    }
+                }
+            });
+        } catch (error) {
+            displayError('脚本初始化失败: ' + error.message);
+        }
+    </script>
 </body>
 </html> 
