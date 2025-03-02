@@ -122,19 +122,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Display company detailed information
     function displayCompanyInfo(company) {
-        // Update company name
+        // 更新公司名称
         document.getElementById('company-name').textContent = company.company_name;
         
-        // Update metric bars and values
+        // 显示星级评分 - 添加调试代码
+        console.log("公司数据:", company);
+        console.log("星级评分:", company.stars);
+        
+        // 无论是否有stars数据，都调用星级显示函数（使用默认值）
+        displayStarsRating(company.stars || 3);
+        
+        // 更新指标条和值
         updateMetricBar('positive', company.positive);
         updateMetricBar('negative', company.negative);
         updateMetricBar('factual', company.factual);
         updateMetricBar('opinion', company.opinion);
         
-        // Display summary bubbles
+        // 显示摘要气泡
         displaySummaries(company);
         
-        // Show company info area
+        // 显示公司信息区域
         companyInfo.classList.add('visible');
     }
     
@@ -183,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadCSVFromGitHub() {
         try {
             // Replace with your actual GitHub raw file URL
-            const csvUrl = 'https://raw.githubusercontent.com/Zachary-Xie/LetUsHelpYou/main/demo.csv';
+            const csvUrl = 'https://raw.githubusercontent.com/Zachary-Xie/LetUsHelpYou/main/demo3.csv';
             const response = await fetch(csvUrl);
             
             if (!response.ok) {
@@ -209,8 +216,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const company = {};
             
             headers.forEach((header, index) => {
-                // Convert numeric values to numbers
-                if (['positive', 'negative', 'factual', 'opinion'].includes(header)) {
+                // 转换数值字段
+                if (['positive', 'negative', 'factual', 'opinion', 'stars'].includes(header)) {
                     company[header] = parseFloat(values[index]) || 0;
                 } else {
                     company[header] = values[index] || '';
@@ -230,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 negative: 15,
                 factual: 70,
                 opinion: 30,
+                stars: 4.5,
                 summary1: "As a Chinese e-commerce giant, Alibaba has excelled in innovation and digital economy development.",
                 summary2: "Company culture has been controversial, with the '996' work system sparking industry-wide discussion.",
                 summary3: "Alibaba's cloud computing business is growing rapidly, becoming a new growth driver."
@@ -240,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 negative: 20,
                 factual: 65,
                 opinion: 35,
+                stars: 4.0,
                 summary1: "Tencent maintains leadership in social media and gaming, with a highly successful WeChat ecosystem.",
                 summary2: "Concerns about gaming addiction and user privacy protection are major challenges facing the company.",
                 summary3: "Tencent actively invests in global tech innovation companies with broad strategic deployment."
@@ -250,6 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 negative: 35,
                 factual: 75,
                 opinion: 25,
+                stars: 3.5,
                 summary1: "Baidu has invested heavily in AI, making significant progress in autonomous driving technology.",
                 summary2: "Search business faces intensified competition, with market share challenged by emerging platforms like TikTok.",
                 summary3: "Baidu Intelligent Cloud business is developing well, with AI solutions gradually being implemented."
@@ -260,6 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 negative: 10,
                 factual: 60,
                 opinion: 40,
+                stars: 5.0,
                 summary1: "Huawei's innovation capabilities in 5G technology and smartphones are globally recognized.",
                 summary2: "Facing international trade restrictions, Huawei has shown strong resilience and adaptability.",
                 summary3: "The release of HarmonyOS marks an important milestone in Huawei's ecosystem development."
@@ -277,4 +288,63 @@ document.addEventListener('DOMContentLoaded', function() {
             companiesData = getSampleData();
         }
     });
+    
+    // 完全重写显示星级评分的函数
+    function displayStarsRating(stars) {
+        const starsDisplay = document.getElementById('stars-display');
+        const ratingValue = document.getElementById('rating-value');
+        
+        console.log("显示星级评分函数被调用，星级值:", stars);
+        console.log("星级容器元素:", starsDisplay);
+        
+        if (!starsDisplay) {
+            console.error("找不到stars-display元素！");
+            return;
+        }
+        
+        // 清空现有内容
+        starsDisplay.innerHTML = '';
+        
+        // 设置默认星级（如果没有数据）
+        if (!stars || isNaN(stars)) {
+            stars = 3; // 默认3星
+            console.log("使用默认星级:", stars);
+        }
+        
+        // 确保评分在1-5范围内
+        stars = Math.max(1, Math.min(5, stars));
+        
+        const fullStars = Math.floor(stars);
+        const hasHalfStar = stars - fullStars >= 0.5;
+        
+        console.log("全星数:", fullStars, "半星:", hasHalfStar);
+        
+        // 直接使用HTML字符串构建星级显示
+        let starsHTML = '';
+        
+        // 添加实心星星
+        for (let i = 0; i < fullStars; i++) {
+            starsHTML += '<span class="star filled">★</span>';
+        }
+        
+        // 添加半星（如果需要）
+        if (hasHalfStar) {
+            starsHTML += '<span class="star half">★</span>';
+        }
+        
+        // 添加空心星星
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        for (let i = 0; i < emptyStars; i++) {
+            starsHTML += '<span class="star empty">☆</span>';
+        }
+        
+        // 设置HTML内容
+        starsDisplay.innerHTML = starsHTML;
+        console.log("设置的星级HTML:", starsHTML);
+        
+        // 清空数字评分显示
+        if (ratingValue) {
+            ratingValue.textContent = '';
+        }
+    }
 }); 

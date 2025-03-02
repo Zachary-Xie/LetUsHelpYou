@@ -6,6 +6,8 @@
     <title>Company Evaluation Visualization</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- 添加FontAwesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* 悬停效果样式 - 修改后 */
         .hover-float {
@@ -293,12 +295,67 @@
         
         /* 错误消息样式 */
         .error-message {
-            color: #F6322D;
+            color: #ef8476;
             padding: 10px;
             margin: 10px 0;
             background-color: #FFEBEE;
             border-radius: 5px;
-            border-left: 4px solid #F6322D;
+            border-left: 4px solid #ef8476;
+        }
+        
+        /* 星级评分样式 */
+        .rating-container {
+            margin: 15px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .rating-row {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+        
+        .rating-label {
+            font-weight: 500;
+            margin-right: 10px;
+        }
+        
+        .stars-container {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .star {
+            color: #d4d4d4; /* 灰色星星 */
+            font-size: 24px;
+            margin-right: 5px;
+        }
+        
+        .star.filled {
+            color: #FFD700; /* 金色星星 */
+        }
+        
+        .star.half-filled {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .star.half-filled:before {
+            content: '\f005'; /* 使用实心星星 */
+            position: absolute;
+            color: #FFD700;
+            width: 50%;
+            overflow: hidden;
+            left: 0;
+        }
+        
+        .rating-value {
+            margin-left: 10px;
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -336,6 +393,18 @@
             
             <div class="company-info" id="company-info">
                 <h2 id="company-name" class="company-name hover-bright"></h2>
+                
+                <!-- 添加星级评分显示 -->
+                <div class="rating-container">
+                    <div class="rating-row">
+                        <span class="rating-label">Rating:</span>
+                        <div id="stars-display" class="stars-container"></div>
+                        <span id="rating-value" class="rating-value"></span>
+                    </div>
+                </div>
+                
+                <!-- 添加情感分布标题 -->
+                <h3 class="section-title">Overall Sentiment Distribution</h3>
                 
                 <div class="metrics-container">
                     <div class="metric-group">
@@ -382,6 +451,9 @@
                     </div>
                 </div>
                 
+                <!-- 添加客户反馈标题 -->
+                <h3 class="section-title">Customer Feedback Highlights</h3>
+                
                 <div class="summaries-container" id="summaries-container">
                     <!-- Bubbles will be dynamically added via JS -->
                 </div>
@@ -395,7 +467,7 @@
         function displayError(message) {
             const errorDisplay = document.getElementById('error-display');
             if (errorDisplay) {
-                errorDisplay.textContent = '错误: ' + message;
+                errorDisplay.textContent = 'Error: ' + message;
                 errorDisplay.style.display = 'block';
             }
         }
@@ -403,31 +475,205 @@
         // 使用try-catch包装所有JavaScript代码
         try {
             document.addEventListener('DOMContentLoaded', function() {
-                // 为动态添加的摘要气泡添加样式
-                const summariesContainer = document.getElementById('summaries-container');
+                // Global variable to store company data
+                let companiesData = {};
                 
-                // 标语文本简化处理 - 移除动画效果
-                const sloganText = document.getElementById('slogan-text');
-                if (sloganText) {
-                    // 保留原始文本，不需要分割成字符
-                    const text = sloganText.innerText;
-                    // 不进行任何动画相关处理
+                // Load CSV data
+                function loadCompaniesData() {
+                    try {
+                        // Disable search button until data is loaded
+                        const searchButton = document.getElementById('search-button');
+                        if (searchButton) {
+                            searchButton.disabled = true;
+                            searchButton.textContent = 'Loading...';
+                        }
+                        
+                        fetch('demo3.csv')
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Failed to retrieve CSV file: ' + response.status);
+                                }
+                                return response.text();
+                            })
+                            .then(data => {
+                                // Parse CSV data
+                                const lines = data.split('\n');
+                                const headers = lines[0].split(',');
+                                
+                                for (let i = 1; i < lines.length; i++) {
+                                    if (!lines[i].trim()) continue;
+                                    
+                                    const values = lines[i].split(',');
+                                    const company = values[0];
+                                    const stars = parseFloat(values[1]);
+                                    
+                                    companiesData[company] = { stars };
+                                }
+                                
+                                console.log('Data loaded successfully. Loaded ' + Object.keys(companiesData).length + ' companies.');
+                                
+                                // Enable search button
+                                if (searchButton) {
+                                    searchButton.disabled = false;
+                                    searchButton.textContent = 'Search';
+                                }
+                            })
+                            .catch(error => {
+                                displayError('Unable to load company ratings: ' + error.message);
+                                // Also enable search button when error occurs
+                                if (searchButton) {
+                                    searchButton.disabled = false;
+                                    searchButton.textContent = 'Search';
+                                }
+                            });
+                    } catch (error) {
+                        displayError('Failed to load company data: ' + error.message);
+                    }
                 }
                 
-                // 简化摘要容器的观察逻辑
+                // Call the load function
+                loadCompaniesData();
+                
+                // Display star rating
+                function displayStarRating(companyName) {
+                    try {
+                        const starsDisplay = document.getElementById('stars-display');
+                        if (!starsDisplay) return;
+                        
+                        // Clear previous stars
+                        starsDisplay.innerHTML = '';
+                        
+                        console.log('Searching for company:', companyName);
+                        console.log('Available company data:', Object.keys(companiesData));
+                        
+                        // Find company, case insensitive
+                        let foundCompany = null;
+                        const searchNameLower = companyName.toLowerCase();
+                        
+                        // Exact match (ignoring case)
+                        for (const company in companiesData) {
+                            if (company.toLowerCase() === searchNameLower) {
+                                foundCompany = company;
+                                console.log('Found exact match:', company);
+                                break;
+                            }
+                        }
+                        
+                        // If no exact match, try partial match
+                        if (!foundCompany) {
+                            console.log('Trying partial match...');
+                            for (const company in companiesData) {
+                                if (company.toLowerCase().includes(searchNameLower) || 
+                                    searchNameLower.includes(company.toLowerCase())) {
+                                    foundCompany = company;
+                                    console.log('Found partial match:', company);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (!foundCompany) {
+                            starsDisplay.innerHTML = '<span>No rating available</span>';
+                            console.log('No company rating data found');
+                            return;
+                        }
+                        
+                        const rating = companiesData[foundCompany].stars;
+                        console.log('Found rating:', rating);
+                        
+                        // If found company name is different from search name, show actual found company name
+                        if (foundCompany.toLowerCase() !== searchNameLower) {
+                            document.getElementById('company-name').textContent = foundCompany;
+                            
+                            // Add information tooltip
+                            const matchInfo = document.createElement('div');
+                            matchInfo.className = 'match-info';
+                            matchInfo.style.fontSize = '12px';
+                            matchInfo.style.color = '#666';
+                            matchInfo.style.marginBottom = '10px';
+                            
+                            
+                            const ratingContainer = document.querySelector('.rating-container');
+                            if (ratingContainer.querySelector('.match-info')) {
+                                ratingContainer.querySelector('.match-info').remove();
+                            }
+                            ratingContainer.insertBefore(matchInfo, ratingContainer.firstChild);
+                        }
+                        
+                        // Display rating value
+                        const ratingValue = document.getElementById('rating-value');
+                        if (ratingValue) {
+                            ratingValue.textContent = rating.toFixed(1);
+                        }
+                        
+                        // Create 5 stars
+                        for (let i = 1; i <= 5; i++) {
+                            const star = document.createElement('i');
+                            star.className = 'star fa-solid fa-star';
+                            
+                            if (i <= Math.floor(rating)) {
+                                // Full star
+                                star.classList.add('filled');
+                            } else if (i === Math.ceil(rating) && rating % 1 !== 0) {
+                                // Half star
+                                star.classList.add('half-filled');
+                            }
+                            
+                            starsDisplay.appendChild(star);
+                        }
+                    } catch (error) {
+                        displayError('Failed to display star rating: ' + error.message);
+                    }
+                }
+                
+                // Modify search button click event, add star rating display
+                const searchButton = document.getElementById('search-button');
+                if (searchButton) {
+                    searchButton.addEventListener('click', function() {
+                        try {
+                            const searchInput = document.getElementById('search-input');
+                            const companyName = searchInput.value.trim();
+                            
+                            if (companyName) {
+                                document.getElementById('company-name').textContent = companyName;
+                                
+                                // Display star rating
+                                displayStarRating(companyName);
+                                
+                                // Show company info area
+                                document.getElementById('company-info').style.display = 'block';
+                            }
+                        } catch (error) {
+                            displayError('Search processing failed: ' + error.message);
+                        }
+                    });
+                }
+                
+                // Add styles for dynamically added summary bubbles
+                const summariesContainer = document.getElementById('summaries-container');
+                
+                // Simplified slogan text handling - remove animation effect
+                const sloganText = document.getElementById('slogan-text');
+                if (sloganText) {
+                    // Keep original text, no need to split into characters
+                    const text = sloganText.innerText;
+                    // No animation related processing needed
+                }
+                
+                // Simplified summary container observation logic
                 if (summariesContainer) {
-                    // 使用更简单的方法为新元素添加样式
+                    // Use simpler method to add styles to new elements
                     const applyBubbleStyles = function(node) {
-                        if (node.nodeType === 1) { // 确保是元素节点
+                        if (node.nodeType === 1) { // Ensure it's an element node
                             node.classList.add('summary-bubble');
-                            // 使用CSS类代替内联样式
+                            // Use CSS class instead of inline styles
                             node.style.borderRadius = '20px';
                             node.style.backgroundColor = 'white';
                             node.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
                             node.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
                             node.style.overflow = 'hidden';
                             
-                            // 简化事件监听器
+                            // Simplified event listeners
                             node.addEventListener('mouseenter', function() {
                                 this.style.transform = 'translateY(-5px)';
                                 this.style.boxShadow = '0 8px 15px rgba(0,0,0,0.07)';
@@ -440,7 +686,7 @@
                         }
                     };
                     
-                    // 简化的MutationObserver配置
+                    // Simplified MutationObserver configuration
                     try {
                         const observer = new MutationObserver(function(mutations) {
                             mutations.forEach(function(mutation) {
@@ -452,41 +698,41 @@
                         
                         observer.observe(summariesContainer, { childList: true });
                     } catch (error) {
-                        displayError('无法监听摘要容器变化: ' + error.message);
+                        displayError('Unable to monitor summary container changes: ' + error.message);
                     }
                 }
                 
-                // 简化拔河动画位置更新函数
+                // Simplified tug-of-war position update function
                 function updateTugOfWar() {
                     try {
                         const positiveBar = document.getElementById('positive-bar');
                         const tugOfWar = document.querySelector('.tug-of-war');
                         
                         if (positiveBar && tugOfWar) {
-                            // 获取正面值或默认为50%
+                            // Get positive value or default to 50%
                             const positiveWidth = parseFloat(positiveBar.style.width) || 50;
                             
-                            // 设置拔河位置
+                            // Set tug-of-war position
                             tugOfWar.style.left = `${positiveWidth}%`;
                         }
 
-                        // 更新 factual 和 opinion 的拔河位置
+                        // Update factual and opinion tug-of-war positions
                         const factualBar = document.getElementById('factual-bar');
-                        const factualTugOfWar = document.querySelectorAll('.tug-of-war')[1]; // 第二个拔河元素
+                        const factualTugOfWar = document.querySelectorAll('.tug-of-war')[1]; // Second tug-of-war element
                         
                         if (factualBar && factualTugOfWar) {
-                            // 获取 factual 值或默认为50%
+                            // Get factual value or default to 50%
                             const factualWidth = parseFloat(factualBar.style.width) || 50;
                             
-                            // 设置拔河位置
+                            // Set tug-of-war position
                             factualTugOfWar.style.left = `${factualWidth}%`;
                         }
                     } catch (error) {
-                        displayError('更新拔河位置失败: ' + error.message);
+                        displayError('Failed to update tug-of-war position: ' + error.message);
                     }
                 }
                 
-                // 初始化拔河位置
+                // Initialize tug-of-war positions
                 setTimeout(function() {
                     try {
                         const positiveBar = document.getElementById('positive-bar');
@@ -501,7 +747,7 @@
                             }
                         }
 
-                        // 初始化 factual 和 opinion 条形图
+                        // Initialize factual and opinion bar graphs
                         const factualBar = document.getElementById('factual-bar');
                         const opinionBar = document.getElementById('opinion-bar');
                         
@@ -514,24 +760,24 @@
                             }
                         }
 
-                        // 更新所有拔河位置
+                        // Update all tug-of-war positions
                         updateTugOfWar();
                     } catch (error) {
-                        displayError('初始化拔河位置失败: ' + error.message);
+                        displayError('Failed to initialize tug-of-war position: ' + error.message);
                     }
                 }, 500);
                 
-                // 简化的正面值设置函数
+                // Simplified positive value setting function
                 if (window.setPositiveValue) {
                     try {
                         const originalSetPositive = window.setPositiveValue;
                         window.setPositiveValue = function(value) {
-                            // 调用原始函数
+                            // Call original function
                             if (typeof originalSetPositive === 'function') {
                                 originalSetPositive(value);
                             }
                             
-                            // 更新条形图和拔河位置
+                            // Update bar graph and tug-of-war positions
                             const positiveBar = document.getElementById('positive-bar');
                             const negativeBar = document.getElementById('negative-bar');
                             if (positiveBar && negativeBar) {
@@ -544,21 +790,21 @@
                             updateTugOfWar();
                         };
                     } catch (error) {
-                        displayError('设置正面值函数重写失败: ' + error.message);
+                        displayError('Failed to rewrite positive value setting function: ' + error.message);
                     }
                 }
 
-                // factual 值设置函数
+                // factual value setting function
                 if (window.setFactualValue) {
                     try {
                         const originalSetFactual = window.setFactualValue;
                         window.setFactualValue = function(value) {
-                            // 调用原始函数
+                            // Call original function
                             if (typeof originalSetFactual === 'function') {
                                 originalSetFactual(value);
                             }
                             
-                            // 更新条形图和拔河位置
+                            // Update bar graph and tug-of-war positions
                             const factualBar = document.getElementById('factual-bar');
                             const opinionBar = document.getElementById('opinion-bar');
                             if (factualBar && opinionBar) {
@@ -571,12 +817,12 @@
                             updateTugOfWar();
                         };
                     } catch (error) {
-                        displayError('设置 factual 值函数重写失败: ' + error.message);
+                        displayError('Failed to rewrite factual value setting function: ' + error.message);
                     }
                 }
             });
         } catch (error) {
-            displayError('脚本初始化失败: ' + error.message);
+            displayError('Script initialization failed: ' + error.message);
         }
     </script>
 </body>
