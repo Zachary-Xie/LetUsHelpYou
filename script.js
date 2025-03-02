@@ -295,7 +295,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const ratingValue = document.getElementById('rating-value');
         
         console.log("显示星级评分函数被调用，星级值:", stars);
-        console.log("星级容器元素:", starsDisplay);
         
         if (!starsDisplay) {
             console.error("找不到stars-display元素！");
@@ -319,28 +318,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log("全星数:", fullStars, "半星:", hasHalfStar);
         
-        // 直接使用HTML字符串构建星级显示
-        let starsHTML = '';
-        
-        // 添加实心星星
-        for (let i = 0; i < fullStars; i++) {
-            starsHTML += '<span class="star filled">★</span>';
+        // 使用Font Awesome图标显示星星
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('i');
+            star.className = 'star fa-solid fa-star';
+            
+            if (i <= fullStars) {
+                // 全星
+                star.classList.add('filled');
+            } else if (i === Math.ceil(stars) && hasHalfStar) {
+                // 半星
+                star.classList.add('half-filled');
+            }
+            
+            starsDisplay.appendChild(star);
         }
-        
-        // 添加半星（如果需要）
-        if (hasHalfStar) {
-            starsHTML += '<span class="star half">★</span>';
-        }
-        
-        // 添加空心星星
-        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-        for (let i = 0; i < emptyStars; i++) {
-            starsHTML += '<span class="star empty">☆</span>';
-        }
-        
-        // 设置HTML内容
-        starsDisplay.innerHTML = starsHTML;
-        console.log("设置的星级HTML:", starsHTML);
         
         // 清空数字评分显示
         if (ratingValue) {
